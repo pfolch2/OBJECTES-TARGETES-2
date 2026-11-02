@@ -1,0 +1,354 @@
+
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ordenem les síl·labes 3</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f2f2f2;
+    margin: 0;
+    padding: 20px;
+    text-align: center;
+}
+
+h1 { font-size: 30px; }
+
+.instruccions {
+    font-size: 19px;
+    margin-bottom: 25px;
+}
+
+.targetes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 25px;
+    max-width: 1200px;
+    margin: auto;
+}
+
+.targeta-contenidor {
+    perspective: 1000px;
+    height: 340px;
+}
+
+.targeta {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+    cursor: pointer;
+}
+
+.targeta.girada { transform: rotateY(180deg); }
+
+.cara {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    background: white;
+    border: 3px solid #333;
+    border-radius: 15px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 15px;
+}
+
+.darrere {
+    transform: rotateY(180deg);
+    justify-content: flex-start;
+    padding-top: 18px;
+}
+
+.icona {
+    font-size: 100px;
+    line-height: 1.3;
+    margin-bottom: 15px;
+}
+
+.text-girar {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.sillabes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin: 12px 0;
+    min-height: 48px;
+}
+
+.sillaba {
+    background: #e5e5e5;
+    border: 2px solid #333;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 21px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.sillaba:disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+.resposta {
+    border: 2px dashed #333;
+    border-radius: 8px;
+    min-height: 42px;
+    width: 90%;
+    padding: 7px;
+    font-size: 21px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 5px 0;
+    box-sizing: border-box;
+}
+
+.botons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+button {
+    border: none;
+    border-radius: 8px;
+    padding: 10px 13px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.corregir { background: #a8d5a2; }
+.reiniciar { background: #f4c6a6; }
+
+.missatge {
+    font-size: 17px;
+    font-weight: bold;
+    min-height: 22px;
+    margin-top: 5px;
+}
+
+@media (max-width: 500px) {
+    .targeta-contenidor { height: 350px; }
+}
+</style>
+</head>
+
+<body>
+
+<h1>ORDENEM LES SÍL·LABES</h1>
+
+<p class="instruccions">
+GIRA LA TARGETA, ORDENA LES SÍL·LABES I FORMA LA PARAULA.
+</p>
+
+<div class="targetes" id="targetes"></div>
+
+<script>
+
+const paraules = [
+
+    // PROFESSIONS I OFICIS
+    {nom:"BOM-BER", sillabes:["BOM","BER"], icona:"🚒"},
+    {nom:"PA-LE-TA", sillabes:["PA","LE","TA"], icona:"👷"},
+    {nom:"MET-GE", sillabes:["MET","GE"], icona:"🩺"},
+    {nom:"CU-I-NE-RA", sillabes:["CU","I","NE","RA"], icona:"👩‍🍳"},
+    {nom:"PIN-TOR", sillabes:["PIN","TOR"], icona:"🖌️"},
+    {nom:"PO-LI-CI-A", sillabes:["PO","LI","CI","A"], icona:"👮"},
+    {nom:"CAR-TER", sillabes:["CAR","TER"], icona:"📮"},
+    {nom:"DEN-TIS-TA", sillabes:["DEN","TIS","TA"], icona:"🦷"},
+
+    // ALIMENTS
+    {nom:"PA-LLA", sillabes:["PA","LLA"], icona:"🥘"},
+    {nom:"MA-CA-RRO-NI", sillabes:["MA","CA","RRO","NI"], icona:"🍝"},
+    {nom:"XO-CO-LA-TA", sillabes:["XO","CO","LA","TA"], icona:"🍫"},
+    {nom:"GE-LAT", sillabes:["GE","LAT"], icona:"🍦"},
+    {nom:"ME-LÓ", sillabes:["ME","LÓ"], icona:"🍈"},
+    {nom:"PI-NA", sillabes:["PI","NA"], icona:"🍍"},
+    {nom:"CIR-ERA", sillabes:["CIR","E","RA"], icona:"🍒"},
+    {nom:"PAS-TÍS", sillabes:["PAS","TÍS"], icona:"🧁"},
+
+    // OBJECTES I MATERIALS
+    {nom:"PA-RAI-GÜES", sillabes:["PA","RAI","GÜES"], icona:"☂️"},
+    {nom:"CLA-U", sillabes:["CLA","U"], icona:"🔑"},
+    {nom:"RE-LLOT-GE", sillabes:["RE","LLOT","GE"], icona:"⌚"},
+    {nom:"MA-LE-TA", sillabes:["MA","LE","TA"], icona:"🧳"},
+    {nom:"LLAN-TER-NA", sillabes:["LLAN","TER","NA"], icona:"🔦"},
+    {nom:"MI-RA-LL", sillabes:["MI","RA","LL"], icona:"🪞"},
+    {nom:"ES-CO-MBRA", sillabes:["ES","CO","MBRA"], icona:"🧹"},
+    {nom:"CAN-DE-LA", sillabes:["CAN","DE","LA"], icona:"🕯️"},
+
+    // CIÈNCIA I TECNOLOGIA
+    {nom:"MI-CROS-CO-PI", sillabes:["MI","CROS","CO","PI"], icona:"🔬"},
+    {nom:"RO-BOT", sillabes:["RO","BOT"], icona:"🤖"},
+    {nom:"SATÈL·LIT", sillabes:["SA","TÈL","LIT"], icona:"🛰️"},
+    {nom:"CO-ET", sillabes:["CO","ET"], icona:"🚀"},
+    {nom:"PILA", sillabes:["PI","LA"], icona:"🔋"},
+    {nom:"CÀ-ME-RA", sillabes:["CÀ","ME","RA"], icona:"📷"},
+    {nom:"MICRÒ-FON", sillabes:["MI","CRÒ","FON"], icona:"🎤"},
+    {nom:"AU-RI-CU-LARS", sillabes:["AU","RI","CU","LARS"], icona:"🎧"},
+
+    // MÚSICA I ART
+    {nom:"FLAU-TA", sillabes:["FLAU","TA"], icona:"🪈"},
+    {nom:"TROM-PE-TA", sillabes:["TROM","PE","TA"], icona:"🎺"},
+    {nom:"SAXÒ-FON", sillabes:["SA","XÒ","FON"], icona:"🎷"},
+    {nom:"NO-TA", sillabes:["NO","TA"], icona:"🎵"},
+    {nom:"PAR-TI-TU-RA", sillabes:["PAR","TI","TU","RA"], icona:"🎼"},
+    {nom:"PA-LE-TA", sillabes:["PA","LE","TA"], icona:"🎨"},
+    {nom:"TE-A-TRE", sillabes:["TE","A","TRE"], icona:"🎭"},
+    {nom:"ES-CUL-TU-RA", sillabes:["ES","CUL","TU","RA"], icona:"🗿"}
+
+];
+
+const contenidor = document.getElementById("targetes");
+
+function barrejar(array) {
+    return [...array].sort(() => Math.random() - 0.5);
+}
+
+paraules.forEach((paraula) => {
+
+    const contenidorTargeta = document.createElement("div");
+    contenidorTargeta.className = "targeta-contenidor";
+
+    const targeta = document.createElement("div");
+    targeta.className = "targeta";
+
+    const davant = document.createElement("div");
+    davant.className = "cara";
+    davant.innerHTML = `
+        <div class="icona">${paraula.icona}</div>
+        <div class="text-girar">GIRA LA TARGETA</div>
+    `;
+
+    const darrere = document.createElement("div");
+    darrere.className = "cara darrere";
+
+    const titol = document.createElement("div");
+    titol.innerHTML = "<strong>ORDENA LES SÍL·LABES</strong>";
+
+    const zonaSillabes = document.createElement("div");
+    zonaSillabes.className = "sillabes";
+
+    const zonaResposta = document.createElement("div");
+    zonaResposta.className = "resposta";
+
+    const botons = document.createElement("div");
+    botons.className = "botons";
+
+    const botoCorregir = document.createElement("button");
+    botoCorregir.className = "corregir";
+    botoCorregir.textContent = "CORREGIR";
+
+    const botoReiniciar = document.createElement("button");
+    botoReiniciar.className = "reiniciar";
+    botoReiniciar.textContent = "TORNAR A COMENÇAR";
+
+    const missatge = document.createElement("div");
+    missatge.className = "missatge";
+
+    botons.appendChild(botoCorregir);
+    botons.appendChild(botoReiniciar);
+
+    darrere.appendChild(titol);
+    darrere.appendChild(zonaSillabes);
+    darrere.appendChild(zonaResposta);
+    darrere.appendChild(botons);
+    darrere.appendChild(missatge);
+
+    targeta.appendChild(davant);
+    targeta.appendChild(darrere);
+
+    contenidorTargeta.appendChild(targeta);
+    contenidor.appendChild(contenidorTargeta);
+
+    let resposta = [];
+
+    function actualitzarResposta() {
+        zonaResposta.innerHTML = "";
+
+        resposta.forEach(sillaba => {
+            const element = document.createElement("span");
+            element.textContent = sillaba;
+            zonaResposta.appendChild(element);
+        });
+    }
+
+    function carregarSillabes() {
+        resposta = [];
+        zonaResposta.innerHTML = "";
+        missatge.textContent = "";
+        zonaSillabes.innerHTML = "";
+
+        const sillabesBarrejades = barrejar(paraula.sillabes);
+
+        sillabesBarrejades.forEach(sillaba => {
+            const boto = document.createElement("button");
+            boto.className = "sillaba";
+            boto.textContent = sillaba;
+
+            boto.addEventListener("click", () => {
+                if (boto.disabled) return;
+
+                resposta.push(sillaba);
+                boto.disabled = true;
+                actualitzarResposta();
+            });
+
+            zonaSillabes.appendChild(boto);
+        });
+    }
+
+    botoCorregir.addEventListener("click", (event) => {
+        event.stopPropagation();
+
+        const respostaAlumne = resposta.join("-");
+        const respostaCorrecta = paraula.sillabes.join("-");
+
+        if (respostaAlumne === respostaCorrecta) {
+            missatge.textContent = "MOLT BÉ! CORRECTE!";
+            missatge.style.color = "green";
+        } else {
+            missatge.textContent = "TORNA-HO A PROVAR!";
+            missatge.style.color = "red";
+        }
+    });
+
+    botoReiniciar.addEventListener("click", (event) => {
+        event.stopPropagation();
+        carregarSillabes();
+    });
+
+    targeta.addEventListener("click", (event) => {
+        if (event.target.closest("button")) return;
+        targeta.classList.toggle("girada");
+    });
+
+    carregarSillabes();
+
+});
+
+</script>
+
+</body>
+</html>
